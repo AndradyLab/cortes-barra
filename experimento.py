@@ -2,7 +2,7 @@ import time
 import os
 import statistics
 from corte_barras import forca_bruta, pd_memoizacao, pd_iterativo, gerar_tabela_de_precos
-from plots import gerar_grafico_crescimento_comparativo, gerar_imagem_da_tabela, gerar_grafico_tempo_medio_linear
+from plots import gerar_grafico_crescimento_comparativo, gerar_tabela_comparacao_resultados, gerar_grafico_tempo_medio_linear
 
 PASTA_RESULTADOS = "resultados"
 LIMITE_TEMPO_FB = 3.0  # Limite máximo em segundos para a Força Bruta
@@ -46,8 +46,8 @@ def main():
             "iter": {"lucro": lucro_iter, "cortes": cortes_iter}
         })
 
-    caminho_tabela = os.path.join(PASTA_RESULTADOS, "1_Tabela_Resultados_Completos.png")
-    gerar_imagem_da_tabela(dados_tabela, caminho_tabela)
+    caminho_tabela = os.path.join(PASTA_RESULTADOS, "comparativo_resultados_algoritmos.png")
+    gerar_tabela_comparacao_resultados(dados_tabela, caminho_tabela)
     print(f"Tabela gerada com sucesso em: {caminho_tabela}\n")
 
 
@@ -56,7 +56,7 @@ def main():
     # =========================================================================
     print("Coletando tempos de execução...")
     tempos_fb, tempos_memo, tempos_iter = [], [], []
-    
+
     for n in TAMANHOS:
         precos = gerar_tabela_de_precos(n, seed=42)
         
@@ -71,7 +71,6 @@ def main():
             else:
                 tempos_fb.append(t_fb)
                 
-        # 2 e 3. PROGRAMAÇÃO DINÂMICA
         t_memo = calcular_tempo(lambda t, p: pd_memoizacao(t, p, {}), n, precos)
         tempos_memo.append(t_memo)
         
@@ -86,20 +85,20 @@ def main():
         if t is None:
             n_timeout = n
             break
-
     # =========================================================================
-    # EXPERIMENTO 2: GRÁFICO COMPARATIVO DE CRESCIMENTO (Escala Logarítmica)
+    # EXPERIMENTO 2: MEDIÇÃO DO TEMPO MÉDIO (Escala Linear)
     # =========================================================================
-    caminho_imagem_log = os.path.join(PASTA_RESULTADOS, "2_Grafico_Comparativo_Logaritmico.png")
-    gerar_grafico_crescimento_comparativo(TAMANHOS, tempos_fb, tempos_memo, tempos_iter, n_timeout, caminho_imagem_log)
-    print(f"Gráfico comparativo de crescimento gerado em: {caminho_imagem_log}")
-
-    # =========================================================================
-    # EXPERIMENTO 3: MEDIÇÃO DO TEMPO MÉDIO (Escala Linear)
-    # =========================================================================
-    caminho_imagem_linear = os.path.join(PASTA_RESULTADOS, "3_Grafico_Tempo_Medio_Linear.png")
+    caminho_imagem_linear = os.path.join(PASTA_RESULTADOS, "Grafico_Tempo_Medio_Execucao.png")
     gerar_grafico_tempo_medio_linear(TAMANHOS, tempos_fb, tempos_memo, tempos_iter, n_timeout, caminho_imagem_linear)
     print(f"Gráfico de tempo médio linear gerado em: {caminho_imagem_linear}")
 
+    # =========================================================================
+    # EXPERIMENTO 3: GRÁFICO COMPARATIVO DE CRESCIMENTO (Escala Logarítmica)
+    # =========================================================================
+    caminho_imagem_log = os.path.join(PASTA_RESULTADOS, "Grafico_Comparativo_Curva_crescimento.png")
+    gerar_grafico_crescimento_comparativo(TAMANHOS, tempos_fb, tempos_memo, tempos_iter, n_timeout, caminho_imagem_log)
+    print(f"Gráfico comparativo de crescimento gerado em: {caminho_imagem_log}")
+
+    
 if __name__ == "__main__":
     main()

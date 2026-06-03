@@ -8,11 +8,6 @@ com nomenclatura descritiva para facilitar o entendimento.
 import sys
 import random
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# GERAÇÃO DE ENTRADAS
-# ─────────────────────────────────────────────────────────────────────────────
-
 def gerar_tabela_de_precos(tamanho_maximo: int, seed: int | None = None) -> list[int]:
     """
     Retorna uma tabela de preços onde o índice é o tamanho do pedaço.

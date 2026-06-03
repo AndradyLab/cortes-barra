@@ -20,7 +20,7 @@ def _aplicar_estilo_visual():
 # =========================================================================
 # FUNÇÃO 1: GERA A IMAGEM DA TABELA DE DADOS
 # =========================================================================
-def gerar_imagem_da_tabela(dados_tabela: list, caminho_salvar: str) -> None:
+def gerar_tabela_comparacao_resultados(dados_tabela: list, caminho_salvar: str) -> None:
     _aplicar_estilo_visual()
     fig, ax = plt.subplots(figsize=(14, 5))
     ax.axis("off") 
