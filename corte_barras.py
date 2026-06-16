@@ -5,8 +5,9 @@ Implementações dos algoritmos de Corte de Barras e geração de entradas
 com nomenclatura descritiva para facilitar o entendimento.
 """
 
-import sys
 import random
+import sys
+
 
 def gerar_tabela_de_precos(tamanho_maximo: int, seed: int | None = None) -> list[int]:
     """
@@ -15,13 +16,16 @@ def gerar_tabela_de_precos(tamanho_maximo: int, seed: int | None = None) -> list
     """
     gerador = random.Random(seed)
     # Gera um preço aleatório para cada tamanho, proporcional ao tamanho do pedaço
-    precos = [gerador.randint(1, 10 * tamanho) for tamanho in range(1, tamanho_maximo + 1)]
+    precos = [
+        gerador.randint(1, 10 * tamanho) for tamanho in range(1, tamanho_maximo + 1)
+    ]
     return [0] + precos
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ALGORITMO 1 — FORÇA BRUTA
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def forca_bruta(tamanho_barra: int, tabela_precos: list[int]) -> tuple[int, list[int]]:
     """
@@ -33,23 +37,29 @@ def forca_bruta(tamanho_barra: int, tabela_precos: list[int]) -> tuple[int, list
     maior_lucro_encontrado = -1
     melhor_combinacao_de_cortes: list[int] = []
 
-    def _testar_todas_combinacoes(tamanho_restante: int, cortes_em_teste: list[int]) -> None:
+    def _testar_todas_combinacoes(
+        tamanho_restante: int, cortes_em_teste: list[int]
+    ) -> None:
         nonlocal maior_lucro_encontrado, melhor_combinacao_de_cortes
-        
+
         # Se não sobrou barra, calculamos o lucro desta combinação específica
         if tamanho_restante == 0:
-            lucro_desta_combinacao = sum(tabela_precos[corte] for corte in cortes_em_teste)
-            
+            lucro_desta_combinacao = sum(
+                tabela_precos[corte] for corte in cortes_em_teste
+            )
+
             if lucro_desta_combinacao > maior_lucro_encontrado:
                 maior_lucro_encontrado = lucro_desta_combinacao
                 melhor_combinacao_de_cortes = list(cortes_em_teste)
             return
-            
+
         # Tenta fazer um corte de cada tamanho possível no pedaço que sobrou
         for tamanho_do_corte in range(1, tamanho_restante + 1):
             cortes_em_teste.append(tamanho_do_corte)
-            _testar_todas_combinacoes(tamanho_restante - tamanho_do_corte, cortes_em_teste)
-            cortes_em_teste.pop() # Desfaz o corte para testar a próxima opção
+            _testar_todas_combinacoes(
+                tamanho_restante - tamanho_do_corte, cortes_em_teste
+            )
+            cortes_em_teste.pop()  # Desfaz o corte para testar a próxima opção
 
     _testar_todas_combinacoes(tamanho_barra, [])
     return maior_lucro_encontrado, sorted(melhor_combinacao_de_cortes)
@@ -59,13 +69,14 @@ def forca_bruta(tamanho_barra: int, tabela_precos: list[int]) -> tuple[int, list
 # ALGORITMO 2 — PROGRAMAÇÃO DINÂMICA RECURSIVO COM MEMOIZAÇÃO
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def pd_memoizacao(
     tamanho_barra: int,
     tabela_precos: list[int],
     cache_lucros_conhecidos: dict | None = None,
 ) -> tuple[int, list[int]]:
     """
-    Abordagem Top-Down: Resolve os problemas do maior para o menor e 
+    Abordagem Top-Down: Resolve os problemas do maior para o menor e
     salva os resultados no cache (memo) para não calcular duas vezes.
     """
     sys.setrecursionlimit(max(10_000, tamanho_barra * 3))
@@ -85,24 +96,34 @@ def pd_memoizacao(
 
         # Simula fazer o primeiro corte de todos os tamanhos possíveis
         for tamanho_do_corte in range(1, tamanho_atual + 1):
-            
             # Descobre o melhor lucro possível para o que sobrou da barra
-            lucro_do_pedaco_restante, _ = _descobrir_melhor_corte(tamanho_atual - tamanho_do_corte)
-            
-            lucro_total_simulado = tabela_precos[tamanho_do_corte] + lucro_do_pedaco_restante
-            
+            lucro_do_pedaco_restante, _ = _descobrir_melhor_corte(
+                tamanho_atual - tamanho_do_corte
+            )
+
+            lucro_total_simulado = (
+                tabela_precos[tamanho_do_corte] + lucro_do_pedaco_restante
+            )
+
             # Se esse corte rendeu mais que os anteriores, vira o novo campeão
             if lucro_total_simulado > maior_lucro_para_este_tamanho:
                 maior_lucro_para_este_tamanho = lucro_total_simulado
                 melhor_primeiro_corte = tamanho_do_corte
 
         # Já sabemos o melhor primeiro corte. Agora pegamos os cortes do resto da barra.
-        _, lista_cortes_do_pedaco_restante = _descobrir_melhor_corte(tamanho_atual - melhor_primeiro_corte)
-        
+        _, lista_cortes_do_pedaco_restante = _descobrir_melhor_corte(
+            tamanho_atual - melhor_primeiro_corte
+        )
+
         # Salva o recorde no dicionário e retorna
-        lista_completa_ordenada = sorted([melhor_primeiro_corte] + lista_cortes_do_pedaco_restante)
-        cache_lucros_conhecidos[tamanho_atual] = (maior_lucro_para_este_tamanho, lista_completa_ordenada)
-        
+        lista_completa_ordenada = sorted(
+            [melhor_primeiro_corte] + lista_cortes_do_pedaco_restante
+        )
+        cache_lucros_conhecidos[tamanho_atual] = (
+            maior_lucro_para_este_tamanho,
+            lista_completa_ordenada,
+        )
+
         return cache_lucros_conhecidos[tamanho_atual]
 
     return _descobrir_melhor_corte(tamanho_barra)
@@ -111,6 +132,7 @@ def pd_memoizacao(
 # ─────────────────────────────────────────────────────────────────────────────
 # ALGORITMO 3 — PROGRAMAÇÃO DINÂMICA ITERATIVO (BOTTOM-UP)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def pd_iterativo(tamanho_barra: int, tabela_precos: list[int]) -> tuple[int, list[int]]:
     """
@@ -123,14 +145,14 @@ def pd_iterativo(tamanho_barra: int, tabela_precos: list[int]) -> tuple[int, lis
 
     # Resolve para uma barra de tamanho 1, depois 2, depois 3, até tamanho_barra
     for tamanho_subproblema in range(1, tamanho_barra + 1):
-        
         # Testa todos os primeiros cortes possíveis para esse subproblema
         for tamanho_do_corte in range(1, tamanho_subproblema + 1):
-            
             lucro_do_corte = tabela_precos[tamanho_do_corte]
-            lucro_do_resto_ja_calculado = lucro_maximo_por_tamanho[tamanho_subproblema - tamanho_do_corte]
+            lucro_do_resto_ja_calculado = lucro_maximo_por_tamanho[
+                tamanho_subproblema - tamanho_do_corte
+            ]
             lucro_total = lucro_do_corte + lucro_do_resto_ja_calculado
-            
+
             # Atualiza o placar se achou um lucro melhor para esse tamanho
             if lucro_total > lucro_maximo_por_tamanho[tamanho_subproblema]:
                 lucro_maximo_por_tamanho[tamanho_subproblema] = lucro_total
@@ -139,7 +161,7 @@ def pd_iterativo(tamanho_barra: int, tabela_precos: list[int]) -> tuple[int, lis
     # Etapa final: Reconstruir a lista de cortes baseada nas melhores escolhas salvas
     lista_final_de_cortes: list[int] = []
     pedaco_que_falta_cortar = tamanho_barra
-    
+
     while pedaco_que_falta_cortar > 0:
         melhor_corte = primeiro_corte_ideal_por_tamanho[pedaco_que_falta_cortar]
         lista_final_de_cortes.append(melhor_corte)
